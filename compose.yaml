@@ -34,8 +34,8 @@ services:
     image: amazon/dynamodb-local:latest
     container_name: dynamodb
     restart: always
-    # volumes:
-    #   - dynamodb:/var/lib/dynamodb/data
+    volumes:
+      - dynamodb:/var/lib/dynamodb/data
     expose:
       - 8000
     ports:
@@ -50,8 +50,8 @@ services:
 networks:
   app-network:
     driver: bridge
-# volumes:
-#   dynamodb:
+volumes:
+  dynamodb:
 # secrets:
 #   db-password:
 #     file: db/password.txt

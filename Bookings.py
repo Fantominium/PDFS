@@ -8,7 +8,7 @@ logger.setLevel(logging.INFO)
 
 
 bookings = []
-handler = DynamoCrudOps("Bookings")
+handler = DynamoCrudOps(table_name="Bookings", attr_name="BookingId")
 key_value = "BookingId"
 
 def create_booking(booking:Booking):

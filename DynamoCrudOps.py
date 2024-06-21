@@ -11,20 +11,40 @@ dynamodb_endpoint = os.getenv('DYNAMODB_ENDPOINT', 'http://localhost:8000')
 
 
 class DynamoCrudOps:
-    def __init__(self, table_name, 
-                    region_name="us-west-2",
-                    aws_access_key_id="dummy",
-                    aws_secret_access_key = "dummy") -> None:
-        self.table_name = table_name
+    def __init__(self, table_name:str, attr_name:str) -> None:
         self.dynamodb = boto3.resource(
                         'dynamodb',
             endpoint_url=dynamodb_endpoint,
-            region_name=region_name,
-            aws_access_key_id=aws_access_key_id,
-            aws_secret_access_key=aws_secret_access_key
+            region_name="us-west-2",
+            aws_access_key_id="dummy",
+            aws_secret_access_key="dummy"
         )
-        self.table = self.dynamodb.Table(table_name)
+        self.table_name=table_name
+        try:
+            connection = self.dynamodb.create_table(TableName=f"{table_name}", 
+                    AttributeDefinitions=[
+                        {
+                            'AttributeName':f"{attr_name}",
+                            'AttributeType':'S'
+                        }
+                    ],
+                    KeySchema=[
+                        {
+                            'AttributeName': f"{attr_name}",
+                            'KeyType': 'HASH'
+                        }
+                    ],
+                    ProvisionedThroughput={
+                        'ReadCapacityUnits': 10,
+                        'WriteCapacityUnits': 10
+                    }
+                )
+            # Wait until the table exists.
+            connection.meta.client.get_waiter('table_exists').wait(TableName=table_name)
+            self.table = self.dynamodb.Table(table_name)
 
+        except (NoCredentialsError, PartialCredentialsError) as e:
+            print("Credentials not available.", e)
         
     def db_insert(self, data: dict):
         item = {
@@ -44,7 +64,7 @@ class DynamoCrudOps:
             print(f"An error occurred: {error}")
 
     def db_read(self):
-        response = self.table.scan()
+        response = self.table.scan(TableName=f"{self.table_name}")
         return response.get("Items",[]), 200
     
     def db_read_single(self, id:str, key:str):
