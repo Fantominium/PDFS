@@ -84,6 +84,9 @@ class DynamoCrudOps:
             if attr_value is not None:
                 var_name = f"#{attr_name}"
                 var_val = f":{attr_value}"
+                if isinstance(var_val, str): 
+                    var_val = var_val.replace(" ", "_")
+                
                 update_expression_parts.append(f"{var_name}={var_val}")
                 expression_attribute_values[var_val] = attr_value
                 expression_attribute_names[var_name] = attr_name
@@ -103,6 +106,7 @@ class DynamoCrudOps:
                 ExpressionAttributeNames=expression_attribute_names,
                 ReturnValues="UPDATED_NEW"
         )
+            print(f"update expression {update_expression}")
             return response.get("Attributes"), 200
         except Exception as e:
             print(f"Error updating item with BookingId {id}: {e}")
