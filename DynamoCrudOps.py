@@ -106,7 +106,6 @@ class DynamoCrudOps:
                 ExpressionAttributeNames=expression_attribute_names,
                 ReturnValues="UPDATED_NEW"
         )
-            print(f"update expression {update_expression}")
             return response.get("Attributes"), 200
         except Exception as e:
             print(f"Error updating item with BookingId {id}: {e}")
