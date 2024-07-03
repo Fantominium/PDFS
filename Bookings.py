@@ -7,7 +7,6 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 
-bookings = []
 handler = DynamoCrudOps(table_name="Bookings", attr_name="BookingId")
 key_value = "BookingId"
 
