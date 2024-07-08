@@ -8,7 +8,7 @@ from Bookings import *
 
 # Assuming the necessary imports and class definitions are available
 
-class TestCreateBooking(unittest.TestCase):
+class TestBooking(unittest.TestCase):
 
     @patch('Bookings.uuid4')
     @patch('Bookings.handler.db_insert')
@@ -54,7 +54,6 @@ class TestCreateBooking(unittest.TestCase):
         self.assertTrue(response.completed)
         mock_db_insert.assert_called_once_with(booking)  # Ensure db_insert was called once
 
-class TestReadSingleBooking(unittest.TestCase):
 
     @patch('Bookings.handler.db_read_single')
     def test_successful_booking_retrieval(self, mock_db_read_single):
@@ -68,7 +67,7 @@ class TestReadSingleBooking(unittest.TestCase):
 
         # Assert
         self.assertEqual(result, expected_booking)
-        mock_db_read_single.assert_called_once_with(f"{booking_id}")
+        mock_db_read_single.assert_called_once_with(str(booking_id), 'BookingId')
 
     @patch('Bookings.handler.db_read_single')
     def test_non_existent_booking(self, mock_db_read_single):
@@ -81,7 +80,7 @@ class TestReadSingleBooking(unittest.TestCase):
 
         # Assert
         self.assertIsNone(result)
-        mock_db_read_single.assert_called_once_with(f"{booking_id}")
+        mock_db_read_single.assert_called_once_with(str(booking_id), 'BookingId')
 
     def test_invalid_uuid_format(self):
         # Arrange
@@ -90,6 +89,78 @@ class TestReadSingleBooking(unittest.TestCase):
         # Act & Assert
         with self.assertRaises(ValueError):
             read_single_booking(UUID(invalid_uuid))
+
+    @patch('Bookings.handler.db_update')
+    def test_successful_booking_update(self, mock_db_update):
+        # Arrange
+        booking_id = UUID('12345678123456781234567812345678')
+        booking_update = Booking(title="Updated Booking", description="Updated Description", completed=True)
+        mock_db_update.return_value = booking_update
+
+        # Act
+        result = update_booking(booking_id, booking_update)
+
+        # Assert
+        self.assertEqual(result, booking_update)
+        mock_db_update.assert_called_once_with(str(booking_id), booking_update, 'BookingId')
+
+    @patch('Bookings.handler.db_update')
+    def test_non_existent_booking_update(self, mock_db_update):
+        # Arrange
+        booking_id = UUID('12345678123456781234567812345678')
+        booking_update = Booking(title="Updated Booking", description="Updated Description", completed=True)
+        mock_db_update.return_value = None
+
+        # Act
+        result = update_booking(booking_id, booking_update)
+
+        # Assert
+        self.assertIsNone(result)
+        mock_db_update.assert_called_once_with(str(booking_id), booking_update, 'BookingId')
+
+    def test_invalid_uuid_format(self):
+        # Arrange
+        invalid_uuid = "invalid-uuid-format"
+        booking_update = Booking(title="Updated Booking", description="Updated Description", completed=True)
+
+        # Act & Assert
+        with self.assertRaises(ValueError):
+            update_booking(UUID(invalid_uuid), booking_update)
+
+    @patch('Bookings.handler.db_delete')
+    def test_successful_booking_deletion(self, mock_db_delete):
+        # Arrange
+        booking_id = UUID('12345678123456781234567812345678')
+        mock_db_delete.return_value = True  # Simulate successful deletion
+
+        # Act
+        result = delete_booking(booking_id)
+
+        # Assert
+        self.assertTrue(result)
+        mock_db_delete.assert_called_once_with(str(booking_id), 'BookingId')
+
+    @patch('Bookings.handler.db_delete')
+    def test_non_existent_booking_deletion(self, mock_db_delete):
+        # Arrange
+        booking_id = UUID('12345678123456781234567812345678')
+        mock_db_delete.return_value = False  # Simulate non-existent booking
+
+        # Act
+        result = delete_booking(booking_id)
+
+        # Assert
+        self.assertFalse(result)
+        mock_db_delete.assert_called_once_with(str(booking_id), 'BookingId')
+
+    def test_invalid_uuid_format(self):
+        # Arrange
+        invalid_uuid = "invalid-uuid-format"
+
+        # Act & Assert
+        with self.assertRaises(ValueError):
+            delete_booking(UUID(invalid_uuid))
+
 
 if __name__ == '__main__':
     unittest.main()
