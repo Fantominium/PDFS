@@ -1,6 +1,6 @@
 from fastapi import HTTPException
 import boto3
-from botocore.exceptions import NoCredentialsError, PartialCredentialsError
+from botocore.exceptions import NoCredentialsError, PartialCredentialsError, ClientError
 from BookingModel import Booking
 import logging
 import os
@@ -20,32 +20,39 @@ class DynamoCrudOps:
             aws_secret_access_key="dummy"
         )
         self.table_name=table_name
-        try:
-            connection = self.dynamodb.create_table(TableName=f"{table_name}", 
-                    AttributeDefinitions=[
-                        {
-                            'AttributeName':f"{attr_name}",
-                            'AttributeType':'S'
-                        }
-                    ],
-                    KeySchema=[
-                        {
-                            'AttributeName': f"{attr_name}",
-                            'KeyType': 'HASH'
-                        }
-                    ],
-                    ProvisionedThroughput={
-                        'ReadCapacityUnits': 10,
-                        'WriteCapacityUnits': 10
-                    }
-                )
-            # Wait until the table exists.
-            connection.meta.client.get_waiter('table_exists').wait(TableName=table_name)
-            self.table = self.dynamodb.Table(table_name)
 
-        except (NoCredentialsError, PartialCredentialsError) as e:
-            print("Credentials not available.", e)
-        
+        try:
+            self.table = self.dynamodb.Table(f"{table_name}")
+            self.table.load()
+        except self.dynamodb.meta.client.exceptions.ResourceNotFoundException:
+            try:
+                connection = self.dynamodb.create_table(TableName=f"{table_name}", 
+                        AttributeDefinitions=[
+                            {
+                                'AttributeName':f"{attr_name}",
+                                'AttributeType':'S'
+                            }
+                        ],
+                        KeySchema=[
+                            {
+                                'AttributeName': f"{attr_name}",
+                                'KeyType': 'HASH'
+                            }
+                        ],
+                        ProvisionedThroughput={
+                            'ReadCapacityUnits': 10,
+                            'WriteCapacityUnits': 10
+                        }
+                    )
+                # Wait until the table exists.
+                connection.meta.client.get_waiter('table_exists').wait(TableName=table_name)
+                self.table = self.dynamodb.Table(table_name)
+
+            except (NoCredentialsError, PartialCredentialsError) as e:
+                print("Credentials not available.", e)
+            except ClientError as e:
+                print("Unexpected error:", e)
+            
     def db_insert(self, data: dict):
         item = {
             'BookingId': f"{data.id}",
