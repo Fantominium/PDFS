@@ -1,7 +1,7 @@
 from fastapi import FastAPI
-from Bookings import *
+from Booking.Bookings import *
 from uuid import UUID
-from BookingModel import Booking
+from Booking.BookingModel import Booking
 from typing import List
 
 app = FastAPI()

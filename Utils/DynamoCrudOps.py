@@ -1,7 +1,7 @@
 from fastapi import HTTPException
 import boto3
 from botocore.exceptions import NoCredentialsError, PartialCredentialsError, ClientError
-from BookingModel import Booking
+from Booking.BookingModel import Booking
 import logging
 import os
 

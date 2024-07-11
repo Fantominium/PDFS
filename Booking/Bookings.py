@@ -1,5 +1,5 @@
-from DynamoCrudOps import DynamoCrudOps
-from BookingModel import Booking
+from Utils.DynamoCrudOps import DynamoCrudOps
+from Booking.BookingModel import Booking
 from uuid import UUID, uuid4
 import logging
 
