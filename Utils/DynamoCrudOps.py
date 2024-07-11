@@ -53,9 +53,9 @@ class DynamoCrudOps:
             except ClientError as e:
                 print("Unexpected error:", e)
             
-    def db_insert(self, data: dict):
+    def db_insert(self, data: dict, key: str):
         item = {
-            'BookingId': f"{data.id}",
+            f"{key}": f"{data.id}",
             'title': data.title,
             'description': data.description,
             'completed': data.completed

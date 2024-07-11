@@ -12,7 +12,8 @@ key_value = "BookingId"
 
 def create_booking(booking:Booking):
     booking.id = uuid4()
-    response = handler.db_insert(booking)
+    booking_key = "BookingId"
+    response = handler.db_insert(booking, f"{booking_key}")
     logger.info(f"{response} from the insert of {booking}")
     return response
 
