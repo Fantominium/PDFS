@@ -54,12 +54,13 @@ class DynamoCrudOps:
                 print("Unexpected error:", e)
             
     def db_insert(self, data: dict, key: str):
-        item = {
-            f"{key}": f"{data.id}",
-            'title': data.title,
-            'description': data.description,
-            'completed': data.completed
-        }
+        # Build the item dictionary dynamically based on the fields present in the model
+        item = {key: str(data.id)}
+        
+        # Add all fields from the model instance to the item dictionary
+        for field, value in data.dict().items():
+            if field != 'id':  # Skip the 'id' field as it is already added
+                item[field] = value
         try:
             self.table.put_item(Item=item)
             return item, 200
