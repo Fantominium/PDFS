@@ -1,7 +1,14 @@
 from fastapi import HTTPException
+import os
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 import boto3
 from botocore.exceptions import NoCredentialsError, PartialCredentialsError, ClientError
 from Booking.BookingModel import Booking
+from boto3.dynamodb.conditions import Attr
+from jose import JWTError, jwt
+from datetime import datetime, timedelta
+from passlib.context import CryptContext
+
 import logging
 import os
 
@@ -78,7 +85,11 @@ class DynamoCrudOps:
     def db_read_single(self, id:str, key:str):
         response_list = self.table.get_item(Key={f"{key}": id})
         response = response_list.get("Item")
-        return response, 200
+        if response:
+            return response, 200
+        else:
+            return {"error": "User not found"}, 404
+    
         
     def db_update(self, id:str, update:dict, key:str):
 
@@ -133,6 +144,19 @@ class DynamoCrudOps:
             return False
             
 
+# -----------------User---------------------------------
 
+    def db_read_single_user(self, email:str):
+        try:
+            response = self.table.scan(
+                FilterExpression=Attr('email').eq(email)
+            )
+            items = response.get("Items")
+            if items:
+                return items[0], 200
+            else:
+                return {"error": "User not found"}, 404
+        except Exception as e:
+            return {"error": str(e)}, 500
 
 

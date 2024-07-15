@@ -8,12 +8,20 @@
 # database or a cache. For examples, see the Awesome Compose repository:
 # https://github.com/docker/awesome-compose
 services:
-  server:
+  # web:
+  #   build:
+  #     context: ./frontend
+  #   container_name: web
+  #   networks:
+  #     - app-network
+  #   ports:
+  #     - 3000:3000
+  api:
     build:
       context: .
-    container_name: server
+    container_name: api
     depends_on:
-      - dynamodb
+      - db
     environment:
       - DYNAMODB_ENDPOINT=http://dynamodb:8000
     networks:
@@ -30,18 +38,19 @@ services:
     # depends_on:
     #   db:
     #     condition: service_healthy
-  dynamodb:
+  db:
     image: amazon/dynamodb-local:latest
     container_name: dynamodb
     restart: always
     volumes:
-      - dynamodb:/var/lib/dynamodb/data
+      - ./database:/home/dynamodblocal/data
     expose:
       - 8000
     ports:
       - 8000:8000
     networks:
       - app-network
+    command: "-jar DynamoDBLocal.jar -sharedDb -dbPath /home/dynamodblocal/data"
     healthcheck:
       test: [ "CMD", "dynamodb_isready" ]
       interval: 10s
@@ -51,7 +60,7 @@ networks:
   app-network:
     driver: bridge
 volumes:
-  dynamodb:
+  database:
 # secrets:
 #   db-password:
 #     file: db/password.txt

@@ -8,6 +8,7 @@
 
 ARG PYTHON_VERSION=3.12.4
 FROM python:${PYTHON_VERSION}-slim as base
+# Dockerfile
 
 # Prevents Python from writing pyc files.
 ENV PYTHONDONTWRITEBYTECODE=1

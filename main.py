@@ -28,9 +28,9 @@ def get_users():
 def read_booking(booking_id: UUID):
     return read_single_booking(booking_id)
 
-@app.get("/users/<user_id:UUID>")
-def get_user(user_id:UUID):
-    return read_single_user(user_id)
+@app.get("/users/<email:str>")
+def get_single_user(email:str):
+    return read_single_user(email)
 
 @app.patch("/bookings/<booking_id:UUID>")
 def update(booking_id: UUID, booking_update: Booking):
