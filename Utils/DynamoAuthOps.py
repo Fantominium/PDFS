@@ -1,19 +1,31 @@
-from fastapi import HTTPException
+from typing import Optional
+from fastapi import HTTPException, Depends, status
 import os
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 import boto3
 from botocore.exceptions import NoCredentialsError, PartialCredentialsError, ClientError
 from boto3.dynamodb.conditions import Attr
+from jwt import (
+    JWT,
+    jwk_from_dict,
+)
+from datetime import datetime, timedelta
+from passlib.context import CryptContext
+from Models.AuthModel import TokenData, TokenModel
+from Models.UserModel import UserModel
 
 import logging
 import os
 
+
+
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 dynamodb_endpoint = os.getenv('DYNAMODB_ENDPOINT', 'http://localhost:8000')
-
-
-class DynamoCrudOps:
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+oauth_2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+jwt_instance = JWT()
+class DynamoAuthOps:
     def __init__(self, table_name:str, attr_name:str) -> None:
         self.dynamodb = boto3.resource(
                         'dynamodb',
@@ -55,8 +67,14 @@ class DynamoCrudOps:
                 print("Credentials not available.", e)
             except ClientError as e:
                 print("Unexpected error:", e)
-            
-    def db_insert(self, data: dict, key: str):
+
+    def verify_password(self, password, hashed_password):
+        return pwd_context.verify(password, hashed_password)
+    
+    def get_pass_hash(self, password):
+        return pwd_context.hash(password)
+
+    def db_add_user(self, data: dict, key: str):
         # Build the item dictionary dynamically based on the fields present in the model
         item = {key: str(data.id)}
         
@@ -64,6 +82,8 @@ class DynamoCrudOps:
         for field, value in data.dict().items():
             if field != 'id':  # Skip the 'id' field as it is already added
                 item[field] = value
+            if field == 'password':
+                item[field] = self.get_pass_hash(value)
         try:
             self.table.put_item(Item=item)
             return item, 200
@@ -78,16 +98,67 @@ class DynamoCrudOps:
         response = self.table.scan(TableName=f"{self.table_name}")
         return response.get("Items",[]), 200
     
-    def db_read_single(self, id:str, key:str):
-        response_list = self.table.get_item(Key={f"{key}": id})
-        response = response_list.get("Item")
-        if response:
-            return response, 200
-        else:
+    def db_read_single_user(self, email:str):
+        try:
+            response = self.table.scan(
+                FilterExpression=Attr('email').eq(email)
+            )
+            items = response.get("Items")
+            if items:
+                return items[0], 200
+            else:
+                return {"error": "User not found"}, 404
+        except Exception as e:
+            return {"error": str(e)}, 500
+
+    def db_auth_user (self, email:str, password:str):
+        user = self.db_read_single_user(email)
+        if user == None:
             return {"error": "User not found"}, 404
+        if not self.verify_password(password, user[0].get("password")):
+            return {"error": "Username or password does not match"}, 403
+        else:
+            return user
+
+    def db_create_access_token(self, data:dict, exp_delta:Optional[timedelta]=None):
+        to_encode = data.copy()
+        if exp_delta:
+            expires= datetime.now() + exp_delta
+        else:
+            expires = datetime.now() + timedelta(minutes= os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES"))
+
+        to_encode.update({"exp": expires})
+        jwt_encoded = jwt_instance.encode(to_encode, os.getenv("SECRET_KEY"), os.getenv("ALGORITHM"))
+
+        return jwt_encoded
     
-        
-    def db_update(self, id:str, update:dict, key:str):
+    async def get_current_user(self, token: str = Depends(oauth_2_scheme)):
+        cred_exp = HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, 
+                                detail="Credentials not validated", 
+                                headers={"WWW-Authenticate":"Bearer"})
+        jwt_payload = jwt_instance.decode(token, os.getenv("SECRET_KEY"), os.getenv("ALGORITHM"))
+        if jwt_payload:
+            email: str = jwt_payload.get("sub")
+            token_data = TokenData(email=email)
+            if token_data is None:
+                raise cred_exp
+            else:
+                user = self.db_read_single_user(email=token_data.email)
+                # Final check: to see if user is found in db
+                if user:
+                    return user
+                else:
+                    raise cred_exp
+        else:
+            raise cred_exp
+
+    async def get_current_active_user(self, current_user: UserModel = Depends(get_current_user)):
+        if current_user.rsvp == "Not Attending":
+            raise HTTPException(status.HTTP_403_FORBIDDEN, detail="You are currently not attending")
+        else:
+            return current_user
+
+    def db_update_user(self, id:str, update:dict, key:str):
 
     # Construct the update expression
         update_expression = "SET"
@@ -125,7 +196,7 @@ class DynamoCrudOps:
         except Exception as e:
             print(f"Error updating item with Record {id}: {e}")
     
-    def db_delete (self, id:str, key:str):
+    def db_delete_user (self, id:str, key:str):
         try:
             response = self.table.delete_item(
                 Key={f"{key}": id}
@@ -136,6 +207,6 @@ class DynamoCrudOps:
             else:
                 raise HTTPException(400, detail=f"There was a problem deleting id: {id}")
         except Exception as e:
-            print(f"Error deleting item with BookingId {id}: {e}")
+            print(f"Error deleting item with record id {id}: {e}")
             return False
             
