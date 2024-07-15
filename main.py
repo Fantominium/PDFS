@@ -53,6 +53,10 @@ def delete_single_user(user_id:UUID, current_user: UserModel = Depends(auth_hand
 async def login_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
     return auth_handler.db_auth_user(email=form_data.username, password=form_data.password)
 
+# @app.get("getUser/me")
+# async def get_user_me(current_user: UserModel = Depends(auth_handler.get_current_active_user)):
+#     return auth_handler.get_current_active_user
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=3000)

@@ -31,6 +31,7 @@ def delete_user(id:UUID):
     return auth_handler.db_delete_user(f"{id}", key_value)
 
 def auth_user(email:str, password:str):
+
     user = auth_handler.db_auth_user(email, password)
     if not user:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, 
