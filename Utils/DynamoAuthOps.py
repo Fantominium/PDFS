@@ -5,10 +5,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 import boto3
 from botocore.exceptions import NoCredentialsError, PartialCredentialsError, ClientError
 from boto3.dynamodb.conditions import Attr
-from jwt import (
-    JWT,
-    jwk_from_dict,
-)
+import jwt
 from datetime import datetime, timedelta
 from passlib.context import CryptContext
 from Models.AuthModel import TokenData, TokenModel
@@ -24,7 +21,6 @@ logger.setLevel(logging.INFO)
 dynamodb_endpoint = os.getenv('DYNAMODB_ENDPOINT', 'http://localhost:8000')
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth_2_scheme = OAuth2PasswordBearer(tokenUrl="token")
-jwt_instance = JWT()
 class DynamoAuthOps:
     def __init__(self, table_name:str, attr_name:str) -> None:
         self.dynamodb = boto3.resource(
@@ -128,7 +124,7 @@ class DynamoAuthOps:
             expires = datetime.now() + timedelta(minutes= os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES"))
 
         to_encode.update({"exp": expires})
-        jwt_encoded = jwt_instance.encode(to_encode, os.getenv("SECRET_KEY"), os.getenv("ALGORITHM"))
+        jwt_encoded = jwt.encode(to_encode, os.getenv("SECRET_KEY"), os.getenv("ALGORITHM"))
 
         return jwt_encoded
     
@@ -136,7 +132,7 @@ class DynamoAuthOps:
         cred_exp = HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, 
                                 detail="Credentials not validated", 
                                 headers={"WWW-Authenticate":"Bearer"})
-        jwt_payload = jwt_instance.decode(token, os.getenv("SECRET_KEY"), os.getenv("ALGORITHM"))
+        jwt_payload = jwt.decode(token, os.getenv("SECRET_KEY"), os.getenv("ALGORITHM"))
         if jwt_payload:
             email: str = jwt_payload.get("sub")
             token_data = TokenData(email=email)

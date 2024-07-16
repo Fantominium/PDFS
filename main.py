@@ -30,7 +30,7 @@ def read_booking(booking_id: UUID):
     return read_single_booking(booking_id)
 
 @app.get("/getUser/<email:str>")
-def get_single_user(email:str, current_user: UserModel = Depends(auth_handler.get_current_active_user)):
+def get_single_user(email:str):
     return read_single_user(email)
 
 @app.patch("/updateBooking/<booking_id:UUID>")
