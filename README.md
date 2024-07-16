@@ -1,5 +1,6 @@
 # This application requires Docker to be installed
 
+Install from <https://docs.docker.com/engine/install/> and follow the instructions for your system
 Once you do, proceed
 
 ## Building the app
