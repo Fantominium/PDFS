@@ -132,7 +132,7 @@ class DynamoAuthOps:
         cred_exp = HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, 
                                 detail="Credentials not validated", 
                                 headers={"WWW-Authenticate":"Bearer"})
-        jwt_payload = jwt.decode(token, os.getenv("SECRET_KEY"), os.getenv("ALGORITHM"))
+        jwt_payload = jwt.decode(token, os.getenv("SECRET_KEY"), algorithms=[os.getenv("ALGORITHM")])
         if jwt_payload:
             email: str = jwt_payload.get("sub")
             token_data = TokenData(email=email)
