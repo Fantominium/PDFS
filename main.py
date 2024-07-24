@@ -46,16 +46,12 @@ def delete(booking_id:UUID):
     return delete_booking(booking_id)
 
 @app.delete("/deleteUser/<user_id:UUID>")
-def delete_single_user(user_id:UUID, current_user: UserModel = Depends(auth_handler.get_current_active_user)):
+def delete_single_user(user_id:UUID, current_user: UserModel = Depends(get_current_active_user)):
     return delete_user(user_id)
 
 @app.post("/token")
 async def login_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
-    return auth_handler.db_auth_user(email=form_data.username, password=form_data.password)
-
-# @app.get("getUser/me")
-# async def get_user_me(current_user: UserModel = Depends(auth_handler.get_current_active_user)):
-#     return auth_handler.get_current_active_user
+    return auth_user(email=form_data.username, password=form_data.password)
 
 if __name__ == "__main__":
     import uvicorn

@@ -1,26 +1,18 @@
-from typing import Optional
-from fastapi import HTTPException, Depends, status
-import os
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi import HTTPException
 import boto3
 from botocore.exceptions import NoCredentialsError, PartialCredentialsError, ClientError
 from boto3.dynamodb.conditions import Attr
-import jwt
-from datetime import datetime, timedelta
 from passlib.context import CryptContext
-from Models.AuthModel import TokenData, TokenModel
-from Models.UserModel import UserModel
-
+from dotenv import load_dotenv
 import logging
 import os
 
-
+load_dotenv()
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 dynamodb_endpoint = os.getenv('DYNAMODB_ENDPOINT', 'http://localhost:8000')
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-oauth_2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 class DynamoAuthOps:
     def __init__(self, table_name:str, attr_name:str) -> None:
         self.dynamodb = boto3.resource(
@@ -115,44 +107,6 @@ class DynamoAuthOps:
             return {"error": "Username or password does not match"}, 403
         else:
             return user
-
-    def db_create_access_token(self, data:dict, exp_delta:Optional[timedelta]=None):
-        to_encode = data.copy()
-        if exp_delta:
-            expires= datetime.now() + exp_delta
-        else:
-            expires = datetime.now() + timedelta(minutes= os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES"))
-
-        to_encode.update({"exp": expires})
-        jwt_encoded = jwt.encode(to_encode, os.getenv("SECRET_KEY"), os.getenv("ALGORITHM"))
-
-        return jwt_encoded
-    
-    async def get_current_user(self, token: str = Depends(oauth_2_scheme)):
-        cred_exp = HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, 
-                                detail="Credentials not validated", 
-                                headers={"WWW-Authenticate":"Bearer"})
-        jwt_payload = jwt.decode(token, os.getenv("SECRET_KEY"), algorithms=[os.getenv("ALGORITHM")])
-        if jwt_payload:
-            email: str = jwt_payload.get("sub")
-            token_data = TokenData(email=email)
-            if token_data is None:
-                raise cred_exp
-            else:
-                user = self.db_read_single_user(email=token_data.email)
-                # Final check: to see if user is found in db
-                if user:
-                    return user
-                else:
-                    raise cred_exp
-        else:
-            raise cred_exp
-
-    async def get_current_active_user(self, current_user: UserModel = Depends(get_current_user)):
-        if current_user.rsvp == "Not Attending":
-            raise HTTPException(status.HTTP_403_FORBIDDEN, detail="You are currently not attending")
-        else:
-            return current_user
 
     def db_update_user(self, id:str, update:dict, key:str):
 
