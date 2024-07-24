@@ -20,6 +20,8 @@ services:
     build:
       context: .
     container_name: api
+    env_file: 
+      - path: ./.env
     depends_on:
       - db
     environment:
