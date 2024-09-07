@@ -2,12 +2,28 @@ from fastapi import Depends, FastAPI
 from fastapi.security import OAuth2PasswordRequestForm
 from Booking.Bookings import *
 from Auth.AuthFunc import *
+from fastapi.middleware.cors import CORSMiddleware
+
 from uuid import UUID
 from Models.BookingModel import Booking
 from Models.UserModel import UserModel
 from typing import List
 
 app = FastAPI()
+
+origins = [
+    "https://localhost:3000",
+    "http://localhost",
+    "http://localhost:3000",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.post("/createBooking/")
 def create(booking:Booking):
