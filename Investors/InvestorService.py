@@ -55,8 +55,8 @@ def sort_by_investor_name():
         ]
 
         return result
-    except KeyError as ke:
-        print(f"Error: Missing key in the data - {ke}.")
+    except KeyError as key_error:
+        print(f"Error: Missing key in the data - {key_error}.")
         raise
     except Exception as e:
         print(f"An unexpected error occurred: {e}")

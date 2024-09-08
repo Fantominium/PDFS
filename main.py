@@ -75,7 +75,7 @@ def get_all_investors():
     return load_csv();
 
 @app.get("/investors/investorList")
-def get_investor_names():
+def get_investor_names_and_commitments():
     return sort_by_investor_name();
 
 if __name__ == "__main__":
