@@ -70,7 +70,40 @@ def sort_by_investor_name():
 
         return result
 
-        return result
+    except KeyError as ke:
+        print(f"Error: Missing key in the data - {ke}.")
+        raise
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+        raise
+
+def get_investor_commitment_list (investor_name):
+    try:
+        # Load data using the previously defined function
+        data = load_csv()
+
+        # List to store commitment details for the specified investor
+        commitment_details = []
+
+        for row in data:
+            # Check if the row belongs to the specified investor
+            if row.get('Investor Name') == investor_name:
+                # Extract relevant details
+                commitment_detail = {
+                    "Commitment Asset Class": row.get("Commitment Asset Class", None),
+                    "Commitment Currency": row.get("Commitment Currency", None),
+                    "Commitment Amount": row.get("Commitment Amount", None)
+                }
+
+                # Add the detail to the list
+                commitment_details.append(commitment_detail)
+
+        # Check if any data was found for the investor
+        if not commitment_details:
+            print(f"No commitment details found for investor '{investor_name}'.")
+
+        return commitment_details
+
     except KeyError as ke:
         print(f"Error: Missing key in the data - {ke}.")
         raise

@@ -78,6 +78,10 @@ def get_all_investors():
 def get_investor_names_and_commitments():
     return sort_by_investor_name();
 
+@app.get("/investors/<investor_name:str>")
+def get_investor_commitments(investor_name:str):
+    return get_investor_commitment_list(investor_name)
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=3000)
