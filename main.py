@@ -2,6 +2,7 @@ from fastapi import Depends, FastAPI
 from fastapi.security import OAuth2PasswordRequestForm
 from Booking.Bookings import *
 from Auth.AuthFunc import *
+from Investors.InvestorService import *
 from fastapi.middleware.cors import CORSMiddleware
 
 from uuid import UUID
@@ -68,6 +69,14 @@ def delete_single_user(user_id:UUID, current_user: UserModel = Depends(get_curre
 @app.post("/token")
 async def login_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
     return auth_user(email=form_data.username, password=form_data.password)
+
+@app.get("/investors")
+def get_all_investors():
+    return load_csv();
+
+@app.get("/investors/investorList")
+def get_investor_names():
+    return sort_by_investor_name();
 
 if __name__ == "__main__":
     import uvicorn
