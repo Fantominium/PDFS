@@ -110,3 +110,30 @@ def get_investor_commitment_list (investor_name):
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
         raise
+
+def filter_commitments_by_asset_class(asset_class, investor_name):
+    
+    commitment_details = get_investor_commitment_list(investor_name)
+
+    try:
+        if not asset_class:
+            raise ValueError("Asset class argument cannot be empty.")
+
+        # Filter the commitment details by the specified asset class
+        filtered_commitments = [
+            detail for detail in commitment_details
+            if detail.get("Commitment Asset Class") == asset_class
+        ]
+
+        # Check if any commitments match the specified asset class
+        if not filtered_commitments:
+            print(f"No commitments found for asset class '{asset_class}'.")
+
+        return filtered_commitments
+
+    except ValueError as ve:
+        print(f"Error: {ve}")
+        raise
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+        raise
