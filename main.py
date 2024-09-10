@@ -33,8 +33,8 @@ def get_investor_names_and_commitments():
 def get_investor_commitments(investor_name:str):
     return get_investor_commitment_list(investor_name)
 
-@app.post("/investors/commitmentsByClass")
-def read_commitments_by_asset_class(asset_class: str, investor_name: str):
+@app.get("/investors/commitmentsByClass")
+def read_commitments_by_asset_class(investor_name: str, asset_class: str):
     return filter_commitments_by_asset_class(asset_class, investor_name)
 
 if __name__ == "__main__":

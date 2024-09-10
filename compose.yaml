@@ -11,11 +11,11 @@ services:
   # web:
   #   build:
   #     context: ./frontend
-  #   container_name: web
+  #   container_name: PrequinFE
   #   networks:
   #     - app-network
   #   ports:
-  #     - 3000:3000
+  #     - 3001:3001
   api:
     build:
       context: .
