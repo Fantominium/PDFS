@@ -19,17 +19,17 @@ services:
   api:
     build:
       context: .
-    container_name: api
+    container_name: PrequinApi
     env_file: 
       - path: ./.env
-    depends_on:
-      - db
+    # depends_on:
+      # - db
     environment:
       - DYNAMODB_ENDPOINT=http://dynamodb:8000
     networks:
       - app-network
     ports:
-      - 8080:8080
+      - 8181:8181
 
 # The commented out section below is an example of how to define a PostgreSQL
 # database that your application can use. `depends_on` tells Docker Compose to
@@ -40,24 +40,24 @@ services:
     # depends_on:
     #   db:
     #     condition: service_healthy
-  db:
-    image: amazon/dynamodb-local:latest
-    container_name: dynamodb
-    restart: always
-    volumes:
-      - ./database:/home/dynamodblocal/data
-    expose:
-      - 8000
-    ports:
-      - 8000:8000
-    networks:
-      - app-network
-    command: "-jar DynamoDBLocal.jar -sharedDb -dbPath /home/dynamodblocal/data"
-    healthcheck:
-      test: [ "CMD", "dynamodb_isready" ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+  # db:
+  #   image: amazon/dynamodb-local:latest
+  #   container_name: dynamodb
+  #   restart: always
+  #   volumes:
+  #     - ./database:/home/dynamodblocal/data
+  #   expose:
+  #     - 8000
+  #   ports:
+  #     - 8000:8000
+  #   networks:
+  #     - app-network
+  #   command: "-jar DynamoDBLocal.jar -sharedDb -dbPath /home/dynamodblocal/data"
+  #   healthcheck:
+  #     test: [ "CMD", "dynamodb_isready" ]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
 networks:
   app-network:
     driver: bridge

@@ -59,11 +59,11 @@ def sort_by_investor_name():
           # Restructure the results into the desired format
         result = [
             {
-                "investor_name": name,
-                "total_commitment_amt": details["total_commitment_amt"],
-                dict_key_date_added: details[dict_key_date_added],
-                dict_key_investor_type: details[dict_key_investor_type],
-                dict_key_investor_country: details[dict_key_investor_country]
+                "investorName": name,
+                "totalCommitmentAmt": details["total_commitment_amt"],
+                "dateAdded": details[dict_key_date_added],
+                "investorType": details[dict_key_investor_type],
+                "investorCountry": details[dict_key_investor_country]
             }
             for name, details in investor_commitments.items()
         ]
@@ -90,10 +90,11 @@ def get_investor_commitment_list (investor_name):
             if row.get('Investor Name') == investor_name:
                 # Extract relevant details
                 commitment_detail = {
-                    "Commitment Asset Class": row.get("Commitment Asset Class", None),
-                    "Commitment Currency": row.get("Commitment Currency", None),
-                    "Commitment Amount": row.get("Commitment Amount", None)
+                    "commitmentAssetClass": row.get("Commitment Asset Class", None),
+                    "commitmentCurrency": row.get("Commitment Currency", None),
+                    "commitmentAmount": row.get("Commitment Amount", None)
                 }
+
 
                 # Add the detail to the list
                 commitment_details.append(commitment_detail)
@@ -122,12 +123,12 @@ def filter_commitments_by_asset_class(asset_class, investor_name):
         # Filter the commitment details by the specified asset class
         filtered_commitments = [
             detail for detail in commitment_details
-            if detail.get("Commitment Asset Class") == asset_class
+            if detail.get("commitmentAssetClass") == asset_class
         ]
-
+        print(commitment_details)
         # Check if any commitments match the specified asset class
         if not filtered_commitments:
-            print(f"No commitments found for asset class '{asset_class}'.")
+            print(f"No commitments found for {investor_name} of asset class '{asset_class}'.")
 
         return filtered_commitments
 
